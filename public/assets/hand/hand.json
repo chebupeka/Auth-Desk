@@ -1,0 +1,18 @@
+{
+  "size": [
+    1100,
+    1040
+  ],
+  "anchor": [
+    0.2632,
+    0.218
+  ],
+  "baseShare": 0.5006,
+  "frames": {
+    "raised": "raised.webp",
+    "pressing": "pressing.webp",
+    "rock": "rock.webp",
+    "lift": "lift.webp",
+    "blur": "blur.webp"
+  }
+}

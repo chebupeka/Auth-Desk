@@ -1,0 +1,1293 @@
+/* ==========================================================================
+   Черновик — вход и регистрация в бумажном стиле
+   ========================================================================== */
+
+/* Шрифты лежат в проекте (public/fonts), наборы символов — кириллица и латиница */
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("/fonts/caveat-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("/fonts/caveat-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Oswald";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/oswald-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: "Oswald";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/oswald-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "PT Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/pt-mono-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: "PT Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/pt-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --desk: #d2bb9a;
+  --paper: #fdfaf1;
+  --paper-2: #f5eedd;
+  --paper-3: #ebe0c4;
+  --rule: #bccfe2;
+  --margin: #e6a19d;
+  --ink: #1e2b4f;
+  --pencil: #5a554d;
+  --red-pen: #c0392b;
+  --stamp: #b3261e;
+  --highlight: rgb(255 222 60 / .6);
+  --shadow: 70 50 15;
+
+  --line: 36px;
+  --margin-x: 62px;
+
+  --hand: "Caveat", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+  --typed: "PT Mono", "Courier New", monospace;
+  --stamp-font: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
+
+  /* Складки мятой бумаги: серые карты, ложатся на цвет бумаги через multiply */
+  --crumple-soft: url("/assets/sheet-soft.webp");
+  --crumple-hard: url("/assets/sheet-crumpled.webp");
+  --crumple-screen: url("/assets/welcome-landscape.webp");
+  --creases: url("/assets/creases.webp");
+  /* Рваный нижний край листа (маска, повторяется по горизонтали) */
+  --torn-edge: url("/assets/torn-edge.webp");
+  /* Неровная краска штампа (маска) */
+  --ink-grain: url("/assets/stamp-grain.webp");
+  /* Курсор, пока палец в штемпельной краске */
+  --finger: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'><path d='M8 29V13a7 7 0 0 1 14 0v16' fill='%23f1cfb0' stroke='%235a3a20' stroke-width='1.3'/><path d='M9.3 14a5.7 5.7 0 0 1 11.4 0v4.5H9.3Z' fill='%23b3261e' opacity='.9'/></svg>");
+  --swoosh: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16' preserveAspectRatio='none'><path d='M3 10C40 4 88 3 128 7S184 12 197 5' fill='none' stroke='%23c0392b' stroke-width='3' stroke-linecap='round' vector-effect='non-scaling-stroke'/></svg>");
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--hand);
+  overflow-x: hidden;
+}
+
+button, input { font: inherit; color: inherit; }
+
+/* Палец в краске: следующее нажатие на лист или стол оставит отпечаток (prints.js) */
+.is-inked { cursor: var(--finger) 15 16, crosshair; }
+
+[hidden] { display: none !important; }
+
+.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible { outline: 2px dashed var(--ink); outline-offset: 4px; }
+
+/* ---------- Стол ---------- */
+
+.desk {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: url("/assets/desk-kraft.webp") 0 0 / 836px 836px repeat, var(--desk);
+}
+
+.desk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 95% at 50% 42%, transparent 52%, rgb(var(--shadow) / .32));
+}
+
+.ball {
+  position: absolute;
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  transform: rotate(var(--rot));
+  filter: drop-shadow(5px 10px 7px rgb(var(--shadow) / .34));
+}
+
+.ball--1 { --size: 140px; --rot: 18deg; left: 3vw; bottom: 5vh; }
+.ball--2 { --size: 100px; --rot: -40deg; right: 6vw; top: 7vh; }
+.ball--3 { --size: 120px; --rot: 100deg; right: 33vw; bottom: -36px; } /* правый угол занят корзиной */
+.ball--4 { --size: 86px; --rot: 160deg; left: 26vw; top: -26px; }
+
+.coffee {
+  position: absolute;
+  left: 9vw;
+  top: 13vh;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, transparent 85%, rgb(122 74 28 / .34) 89.5%, rgb(122 74 28 / .12) 93%, transparent 96%),
+    radial-gradient(closest-side, rgb(140 92 40 / .08) 86%, transparent 88%);
+  transform: rotate(-24deg) scaleX(1.05);
+  filter: url(#fx-rough);
+}
+
+.coffee::after {
+  content: "";
+  position: absolute;
+  inset: 14% -10% -12% 18%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, transparent 88%, rgb(122 74 28 / .2) 92%, transparent 96%);
+  clip-path: polygon(40% 100%, 100% 30%, 100% 100%);
+}
+
+.desk-note {
+  position: absolute;
+  filter: drop-shadow(2px 5px 4px rgb(var(--shadow) / .28));
+}
+
+.desk-note__paper {
+  display: grid;
+  place-content: center;
+  font: 600 23px/26px var(--hand);
+  color: var(--pencil);
+  white-space: nowrap;
+  background: center / 100% 100% no-repeat;
+}
+
+.desk-note s { text-decoration-color: var(--red-pen); text-decoration-thickness: 2px; }
+
+/* Штемпельная подушка и штамп: подушку можно двигать, штамп при входе «забирает» рука */
+.desk-item {
+  position: absolute;
+  display: block;
+  height: auto;
+  transform: rotate(var(--rot));
+  filter: drop-shadow(4px 8px 6px rgb(var(--shadow) / .32));
+}
+
+.desk-item--pad { --rot: -8deg; width: 92px; left: 3vw; top: 31vh; }
+.desk-item--stamp { --rot: 14deg; width: 128px; left: 11vw; top: 39vh; }
+
+.desk-item:hover { filter: drop-shadow(6px 12px 8px rgb(var(--shadow) / .36)); }
+.desk-item.is-held { filter: drop-shadow(12px 22px 14px rgb(var(--shadow) / .3)); }
+
+.desk-note { transform: rotate(var(--rot)); }
+.desk-note--1 { --rot: -9deg; left: 7vw; bottom: 32vh; }
+.desk-note--2 { --rot: 6deg; right: 4vw; bottom: max(24vh, 190px); } /* выше корзины */
+
+/* Предметы, которые можно таскать (координаты и поворот задаёт desk.js) */
+[data-desk] {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  transition: filter .2s ease;
+}
+
+.ball:hover { filter: drop-shadow(7px 13px 9px rgb(var(--shadow) / .38)); }
+.desk-note:hover { filter: drop-shadow(3px 8px 7px rgb(var(--shadow) / .32)); }
+
+/* Поднятый предмет: тень дальше и мягче */
+[data-desk].is-held { cursor: grabbing; }
+
+.is-dragging,
+.is-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.ball.is-held { filter: drop-shadow(14px 24px 14px rgb(var(--shadow) / .32)); }
+.desk-note.is-held { filter: drop-shadow(8px 16px 12px rgb(var(--shadow) / .3)); }
+
+/* Комок на дне корзины: в её тени и ниже стола (масштаб задаёт desk.js) */
+.ball.is-binned,
+.ball.is-binned:hover { filter: brightness(.74) saturate(.85) drop-shadow(2px 5px 3px rgb(30 18 6 / .5)); }
+
+/* ---------- Корзина для комков ---------- */
+
+/* Обод — отдельная картинка поверх комков на дне: так комок оказывается внутри корзины.
+   Порядок слоёв: корзина (1) → комки на дне (2) → обод (3) → всё, что взяли в руку (desk.js) */
+.basket,
+.basket-rim {
+  position: absolute;
+  right: 2vw;
+  bottom: 2.5vh;
+  width: 156px;
+  height: 156px;
+  pointer-events: none;
+}
+
+.basket { z-index: 1; filter: drop-shadow(6px 11px 9px rgb(var(--shadow) / .42)); }
+.basket-rim { z-index: 3; }
+
+/* Счёт попаданий карандашом: зарубки по четыре и пятая наискосок. Ряды растут вверх */
+.tally {
+  position: absolute;
+  right: calc(2vw + 168px);
+  bottom: calc(2.5vh + 6px);
+  width: 150px;
+  height: 120px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.tally path {
+  fill: none;
+  stroke: var(--pencil);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+  opacity: .8;
+}
+
+/* Отпечаток пальца: на столе (координаты экрана) и на листе (prints.js) */
+.print {
+  position: absolute;
+  width: 38px;
+  height: 48px;
+  margin: -24px 0 0 -19px;
+  overflow: visible;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  filter: url(#fx-print);
+}
+
+.print path { fill: none; stroke: var(--stamp); stroke-width: 2.7; stroke-linecap: round; }
+
+/* «я же говорил!» красной ручкой на записке с qwerty — появляется, если такой пароль ввели при регистрации */
+.desk-note__remark {
+  position: absolute;
+  left: 40%;
+  top: -36px;
+  font: 700 28px/1 var(--hand);
+  color: var(--red-pen);
+  white-space: nowrap;
+  transform: rotate(-7deg);
+  visibility: hidden;
+}
+
+.desk-note__remark.is-on { visibility: visible; }
+
+/* Пропорции совпадают с картинками обрывков */
+.desk-note--1 .desk-note__paper {
+  width: 250px;
+  height: 64px;
+  padding: 0 30px 2px 12px;
+  background-image: url("/assets/scrap-long.webp");
+}
+
+.desk-note--2 .desk-note__paper {
+  width: 236px;
+  height: 102px;
+  padding-bottom: 4px;
+  background-image: url("/assets/scrap-wide.webp");
+}
+
+/* ---------- Сцена и блокнот ---------- */
+
+.scene {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 92px 16px 56px;
+  /* колонка не шире экрана, даже если внутри длинная ошибка или «Регистрация» на узком телефоне */
+  grid-template-columns: minmax(0, 1fr);
+  /* скотч и подложенные листы свисают за края; clip не даёт мобильному Chrome расширить страницу */
+  overflow-x: clip;
+  pointer-events: none; /* пустые места сцены пропускают указатель к предметам на столе */
+}
+
+/* без JavaScript сцена остаётся скрытой (is-booting не снимается), но сообщение должно быть видно */
+.is-booting .noscript { visibility: visible; }
+
+/* Указатель ловят только видимые части: пустые промежутки блокнота (например, между листом
+   и стикером на узком экране) не должны закрывать комки на столе */
+.stack,
+.sticky,
+.noscript { pointer-events: auto; }
+
+.is-booting .scene { visibility: hidden; }
+
+.notebook {
+  position: relative;
+  width: min(460px, 100%);
+  min-width: 0;
+}
+
+.is-ready .notebook { animation: land .75s cubic-bezier(.2, .8, .2, 1) both; }
+.is-ready .sticky { animation: stick .6s .45s cubic-bezier(.2, .9, .3, 1.25) both; }
+
+@keyframes land {
+  from { opacity: 0; translate: 0 -40px; rotate: -4deg; scale: 1.03; }
+}
+
+@keyframes stick {
+  from { opacity: 0; translate: 0 -26px; rotate: 14deg; scale: 1.12; }
+}
+
+.stack {
+  position: relative;
+  filter:
+    drop-shadow(0 1px 1px rgb(var(--shadow) / .28))
+    drop-shadow(0 16px 22px rgb(var(--shadow) / .24));
+}
+
+/* Смятые и расправленные листы под основным */
+.page {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 2px;
+  background: var(--crumple-hard) center / cover no-repeat, var(--paper-2);
+  background-blend-mode: multiply;
+}
+
+.page--back {
+  background-color: var(--paper-3);
+  transform: translate(-12px, 10px) rotate(-4.5deg);
+  clip-path: polygon(0 1%, 100% 0, 99% 34%, 100% 63%, 98.5% 100%, 2% 99%, 0 68%);
+}
+
+.page--middle {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 calc(var(--line) - 1px), rgb(188 207 226 / .8) calc(var(--line) - 1px) var(--line)),
+    var(--crumple-hard) center / cover no-repeat,
+    var(--paper-2);
+  background-blend-mode: multiply;
+  transform: translate(10px, 6px) rotate(2.6deg);
+}
+
+/* Закладки-вкладки над листом */
+.tabs {
+  position: absolute;
+  left: calc(var(--margin-x) + 14px);
+  bottom: 100%;
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  position: relative;
+  z-index: 0;
+  margin-bottom: -8px;
+  padding: 7px 18px 14px;
+  font: 700 24px/1 var(--hand);
+  color: var(--pencil);
+  background: var(--paper-3);
+  border: 0;
+  border-radius: 12px 12px 0 0;
+  box-shadow: inset 0 -10px 10px -10px rgb(var(--shadow) / .35);
+  cursor: pointer;
+  transform: translateY(5px);
+  transition: transform .2s ease, color .2s ease;
+}
+
+.tab:hover { transform: translateY(1px); color: var(--ink); }
+
+.tab[aria-selected="true"] {
+  z-index: 2;
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: none;
+  transform: none;
+  cursor: default;
+}
+
+.tab:focus-visible { outline-offset: -6px; }
+
+/* Основной лист */
+.sheet {
+  position: relative;
+  z-index: 1;
+  /* Высота как у регистрации (16½ строк), чтобы при смене режима лист и всё вокруг стояли на месте */
+  min-height: calc(var(--line) * 16.5);
+  padding: calc(var(--line) * 2) 34px calc(var(--line) * 1.5) calc(var(--margin-x) + 22px);
+  background:
+    linear-gradient(90deg, transparent var(--margin-x), var(--margin) var(--margin-x) calc(var(--margin-x) + 2px), transparent calc(var(--margin-x) + 2px)),
+    repeating-linear-gradient(180deg, transparent 0 calc(var(--line) - 1px), var(--rule) calc(var(--line) - 1px) var(--line)),
+    var(--crumple-soft) center / cover no-repeat,
+    var(--paper);
+  background-blend-mode: multiply;
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 23px) no-repeat,
+    var(--torn-edge) bottom left / 543px 24px repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 23px) no-repeat,
+    var(--torn-edge) bottom left / 543px 24px repeat-x;
+}
+
+/* Складки, которые проступают, пока лист сминается */
+.sheet__creases {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: var(--creases) center / cover no-repeat;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Смена «вход ⇄ регистрация»: старый лист сминают ---------- */
+
+/* Сорванный лист лежит поверх нового, но под скотчем — скотч остаётся держать новый лист.
+   Фильтр и тень задаёт app.js */
+.wad {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Следы на листе: при смене режима их уносит сорванный лист (его копия), а новый лист чистый */
+.marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Каракули от скуки (doodles.js): ручкой, медленно */
+.doodle {
+  position: absolute;
+  overflow: visible;
+}
+
+.doodle path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .7;
+}
+
+/* Работа над ошибками: пометки красной ручкой на полях у неверного пароля */
+.margin-notes {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--margin-x) + 20px);
+  pointer-events: none;
+}
+
+.margin-note {
+  position: absolute;
+  left: 2px;
+  font: 700 19px/1 var(--hand);
+  color: var(--red-pen);
+  white-space: nowrap;
+  transform: rotate(var(--tilt, -6deg));
+  transform-origin: left center;
+}
+
+.margin-note--grade {
+  left: calc(var(--margin-x) / 2 - 8px);
+  font-size: 38px;
+}
+
+.margin-note__ring {
+  position: absolute;
+  left: -13px;
+  top: -9px;
+  width: 44px;
+  height: 52px;
+  overflow: visible;
+}
+
+.margin-note__ring path {
+  fill: none;
+  stroke: var(--red-pen);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.holes {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--margin-x) / 2 - 11px);
+  width: 22px;
+  background:
+    radial-gradient(circle, #c4b594 0 6.5px, rgb(var(--shadow) / .45) 7.5px, rgb(var(--shadow) / .1) 9px, transparent 10px) 0 18% / 22px 22px no-repeat,
+    radial-gradient(circle, #c4b594 0 6.5px, rgb(var(--shadow) / .45) 7.5px, rgb(var(--shadow) / .1) 9px, transparent 10px) 0 50% / 22px 22px no-repeat,
+    radial-gradient(circle, #c4b594 0 6.5px, rgb(var(--shadow) / .45) 7.5px, rgb(var(--shadow) / .1) 9px, transparent 10px) 0 82% / 22px 22px no-repeat;
+}
+
+/* Малярный скотч: картинка с рваными краями, слегка просвечивает */
+.tape {
+  position: absolute;
+  z-index: 3;
+  width: 124px;
+  height: 28px;
+  background: url("/assets/tape-beige.webp") center / 100% 100% no-repeat;
+  opacity: .9;
+}
+
+.tape--left { top: -6px; left: -36px; transform: rotate(-38deg); }
+.tape--right { top: -2px; right: -38px; transform: rotate(36deg); }
+
+/* ---------- Перерыв: лист заклеен крест-накрест ---------- */
+
+/* Закрывает весь лист: пока идёт отсчёт, ни поля, ни кнопка недоступны */
+.lockout {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  cursor: not-allowed;
+  outline: none;
+}
+
+/* Полоса повёрнута целиком, а внутренняя часть (strip) отклеивается в своей плоскости */
+.lockout__tape {
+  position: absolute;
+  top: calc(44% - 31px);
+  left: -21%;
+  width: 142%;
+  height: 62px;
+  transform: rotate(var(--angle)); /* без translate: app.js «шлёпает» полосу через scale вокруг её середины */
+}
+
+.lockout__tape--a { --angle: 39deg; }
+.lockout__tape--b { --angle: -39deg; }
+
+/* Рваные концы скотча не растягиваются: картинка режется на концы и середину */
+.lockout__strip {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border: 0 solid transparent;
+  border-width: 0 30px;
+  border-image: url("/assets/tape-beige.webp") 0 66 fill / 0 30px stretch;
+  filter: drop-shadow(0 2px 2px rgb(var(--shadow) / .25));
+}
+
+.lockout__tape--b .lockout__strip {
+  justify-content: flex-end;
+  border-image-source: url("/assets/tape-blue.webp");
+}
+
+/* Надписи ближе к верхним концам полос, чтобы не сходиться на перекрестье */
+.lockout__word {
+  margin: 0 15%;
+  font: 700 38px/1 var(--hand);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* ---------- Форма ---------- */
+
+.form { position: relative; }
+
+.form__title {
+  position: relative;
+  width: fit-content;
+  height: calc(var(--line) * 2);
+  margin: 0;
+  font: 700 62px/1 var(--hand);
+  padding-top: 20px;
+  color: var(--ink);
+  letter-spacing: .01em;
+}
+
+.form__title::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -10px;
+  bottom: -6px;
+  height: 14px;
+  background: var(--swoosh) center / 100% 100% no-repeat;
+}
+
+.form__hint {
+  margin: 0;
+  font: 13px/var(--line) var(--typed);
+  letter-spacing: .06em;
+  color: var(--pencil);
+}
+
+.field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  height: var(--line);
+}
+
+.field__label {
+  margin-left: -4px;
+  padding: 0 4px;
+  font: 600 25px/var(--line) var(--hand);
+  color: var(--pencil);
+  white-space: nowrap;
+  background: linear-gradient(transparent 56%, var(--highlight) 56% 86%, transparent 86%) 0 0 / 0 100% no-repeat;
+  transition: background-size .35s ease;
+}
+
+.field:focus-within .field__label { background-size: 100% 100%; }
+
+.field__error {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  font: 700 21px/var(--line) var(--hand);
+  color: var(--red-pen);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: rotate(-1.5deg);
+}
+
+.field__control {
+  position: relative;
+  height: var(--line);
+}
+
+.field__control::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s ease, background-color .2s;
+  pointer-events: none;
+}
+
+.field:focus-within .field__control::after { transform: scaleX(1); }
+.field[data-invalid] .field__control::after { transform: scaleX(1); background: var(--red-pen); }
+
+.field__input {
+  display: block;
+  width: 100%;
+  height: var(--line);
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  font: 600 31px/var(--line) var(--hand);
+  color: var(--ink);
+  caret-color: var(--red-pen);
+  cursor: text;
+}
+
+.field__input--secret { padding-right: 46px; }
+
+.field__input[type="password"] { font-family: var(--typed); font-size: 20px; letter-spacing: .12em; }
+
+/* Автозаполнение браузера не должно заливать поле цветом. Анимация-метка нужна app.js: по её началу
+   он узнаёт, что Chrome подставил сохранённый пароль при загрузке страницы */
+.field__input:-webkit-autofill,
+.field__input:-webkit-autofill:hover,
+.field__input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  transition: background-color 600000s 0s, color 600000s 0s;
+  animation: autofill-on .01s;
+}
+
+/* Без этого текст, подставленный браузером, может рисоваться системным шрифтом */
+.field__input:-webkit-autofill::first-line { font: 600 31px/var(--line) var(--hand); }
+.field__input[type="password"]:-webkit-autofill::first-line { font: 20px/var(--line) var(--typed); }
+
+@keyframes autofill-on { from { opacity: 1; } }
+
+.peek {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: var(--line);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pencil);
+  cursor: pointer;
+}
+
+.peek:hover { color: var(--ink); }
+
+.peek svg {
+  width: 30px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.peek__pupil { fill: currentColor; stroke: none; }
+.peek__slash { opacity: 0; transition: opacity .15s; }
+.peek[aria-pressed="true"] .peek__slash { opacity: 1; }
+
+/* Зачёркивание неверного пароля */
+.strike {
+  position: absolute;
+  inset: 0 46px 0 0;
+  width: calc(100% - 46px);
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Промежуток штриха длиннее пути, иначе круглый кончик пустого штриха рисует точку в конце линии */
+.strike path {
+  fill: none;
+  stroke: var(--red-pen);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  visibility: hidden;
+}
+
+.field.is-struck .strike path { visibility: visible; animation: draw .28s ease-out forwards; }
+.field.is-struck .strike path + path { animation-delay: .16s; }
+
+.form__error {
+  min-height: var(--line);
+  margin: 0;
+  font: 700 23px/var(--line) var(--hand);
+  color: var(--red-pen);
+}
+
+.form__error:not(:empty)::before { content: "✗ "; }
+
+.form__actions {
+  display: flex;
+  align-items: center;
+  height: calc(var(--line) * 2);
+}
+
+/* Кнопка-штамп */
+.stamp-btn {
+  padding: 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotate(-2.5deg);
+  transition: transform .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stamp-btn__ink {
+  position: relative;
+  display: block;
+  min-width: 150px;
+  padding: 11px 26px 10px calc(26px + .2em);
+  font: 600 23px/1 var(--stamp-font);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--stamp);
+  border: 3px solid currentColor;
+  border-radius: 8px;
+  transition: background-color .2s ease;
+  -webkit-mask: var(--ink-grain);
+  mask: var(--ink-grain);
+}
+
+.stamp-btn__ink::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1.5px solid currentColor;
+  border-radius: 5px;
+}
+
+.stamp-btn:hover { transform: rotate(-1deg) scale(1.03); }
+.stamp-btn:hover .stamp-btn__ink { background-color: rgb(179 38 30 / .08); }
+.stamp-btn:active { transform: rotate(-2.5deg) scale(.95); }
+.stamp-btn:disabled { cursor: progress; }
+.stamp-btn:disabled .stamp-btn__ink { opacity: .55; }
+
+.form__switch {
+  margin: 0;
+  font: 600 22px/var(--line) var(--hand);
+  color: var(--pencil);
+}
+
+.pencil-link {
+  padding: 0 3px;
+  border: 0;
+  font: 700 23px/1.2 var(--hand);
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  background: linear-gradient(transparent 56%, var(--highlight) 56% 88%, transparent 88%) 0 0 / 0 100% no-repeat;
+  cursor: pointer;
+  transition: background-size .3s ease;
+}
+
+.pencil-link:hover,
+.pencil-link:focus-visible { background-size: 100% 100%; }
+
+/* Оттиск «Принято»: рамка — настоящий оттиск штампа, слово набрано поверх.
+   Наклон совпадает с STAMP_TILT в app.js — под ним рука ставит штамп */
+.approved {
+  --tilt: 8deg;
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 300px;
+  aspect-ratio: 900 / 304;
+  padding-left: .14em;
+  font: 600 52px/1 var(--stamp-font);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--stamp);
+  background: url("/assets/stamp-imprint.webp") center / 100% 100% no-repeat;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--tilt));
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.approved__ink {
+  -webkit-mask: var(--ink-grain);
+  mask: var(--ink-grain);
+}
+
+/* Оттиск регистрации: «Новый лист» и номер пользователя в две строки */
+.approved--sheet .approved__ink {
+  display: grid;
+  justify-items: center;
+  font-size: .48em;
+  line-height: 1.1;
+  letter-spacing: .12em;
+}
+
+.approved__num { font-size: 1.6em; letter-spacing: .06em; }
+
+/* ---------- Рука со штампом ---------- */
+
+/* Позицию, размер и точку вращения (центр основания штампа) задаёт app.js.
+   Рукав в кадре обрезан краем картинки — растворяем правый и нижний края,
+   чтобы срез не был виден, если не ушёл за экран */
+.hand {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 14;
+  pointer-events: none;
+  will-change: transform, filter;
+  -webkit-mask:
+    linear-gradient(to left, transparent, #000 12%),
+    linear-gradient(to top, transparent, #000 12%);
+  -webkit-mask-composite: source-in;
+  mask:
+    linear-gradient(to left, transparent, #000 12%),
+    linear-gradient(to top, transparent, #000 12%);
+  mask-composite: intersect;
+}
+
+.hand img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+}
+
+.hand img.is-on { visibility: visible; }
+
+/* ---------- Курсор-рука ---------- */
+
+/* Сам блок — точка 0×0 под указателем мыши (сдвигает cursor.js). Картинки поз висят от неё так,
+   чтобы горячая точка (кончик пальца, щепоть, кончик ручки) приходилась ровно на указатель;
+   смещения и размеры — в долях --frame, ширины исходного кадра на экране */
+.cursor {
+  --frame: clamp(250px, 21vw, 340px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+  will-change: transform;
+}
+
+.cursor.is-on { opacity: 1; }
+
+/* Пока на лист опускается рука со штампом, вторая такая же рука на экране не нужна */
+.hand:not([hidden]) ~ .cursor { opacity: 0; }
+
+/* Тень по силуэту: рука с вытянутым пальцем парит над столом, ручка почти касается листа,
+   а щепоть опускается к самому листу — тень ближе и резче, рука чуть меньше */
+.cursor__hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  filter: drop-shadow(14px 20px 10px rgb(var(--shadow) / .3));
+  transition: transform .14s ease, filter .14s ease;
+}
+
+.cursor[data-pose="pen"] .cursor__hand { filter: drop-shadow(8px 12px 7px rgb(var(--shadow) / .34)); }
+
+.cursor[data-pose="grab"] .cursor__hand {
+  transform: scale(.96);
+  filter: drop-shadow(5px 8px 5px rgb(var(--shadow) / .38));
+}
+
+.cursor img,
+.cursor__ink {
+  position: absolute;
+  left: calc(var(--x) * var(--frame));
+  top: calc(var(--y) * var(--frame));
+  width: calc(var(--w) * var(--frame));
+  height: calc(var(--h) * var(--frame));
+  max-width: none;
+  visibility: hidden;
+}
+
+/* Рукав обрезан краем кадра — растворяем правый и нижний края, как у руки со штампом */
+.cursor img {
+  -webkit-mask:
+    linear-gradient(to left, transparent, #000 12%),
+    linear-gradient(to top, transparent, #000 12%);
+  -webkit-mask-composite: source-in;
+  mask:
+    linear-gradient(to left, transparent, #000 12%),
+    linear-gradient(to top, transparent, #000 12%);
+  mask-composite: intersect;
+}
+
+.cursor img.is-on { visibility: visible; }
+
+/* Палец в краске (html.is-inked, prints.js): красное пятно на кончике пальца или на сведённых пальцах,
+   обрезанное по силуэту картинки и наложенное на кожу через multiply. Ручку держат чистыми пальцами */
+.cursor__ink {
+  background: radial-gradient(circle calc(var(--frame) * .05) at var(--ink-at), rgb(170 30 24 / .85) 35%, rgb(170 30 24 / 0));
+  -webkit-mask: var(--ink-mask) 0 0 / 100% 100% no-repeat;
+  mask: var(--ink-mask) 0 0 / 100% 100% no-repeat;
+  mix-blend-mode: multiply;
+}
+
+html.is-inked .cursor:not([data-pose="pen"]) img.is-on + .cursor__ink { visibility: visible; }
+
+/* Системный курсор прячем, только когда рука готова и мышь над страницей (класс ставит cursor.js) */
+html.has-hand-cursor,
+html.has-hand-cursor * { cursor: none !important; }
+
+/* ---------- Стикер с тестовыми данными ---------- */
+
+/* Картинка стикера с загнутым углом; пропорции как у файла (520×515) */
+.sticky {
+  position: absolute;
+  top: 140px;
+  left: calc(100% + 30px);
+  z-index: 3;
+  width: 214px;
+  aspect-ratio: 520 / 515;
+  padding: 34px 24px 20px 26px;
+  font: 600 23px/1.3 var(--hand);
+  color: var(--ink);
+  background: url("/assets/sticky-note.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 2px 2px rgb(var(--shadow) / .22));
+  transform: rotate(3deg);
+}
+
+.sticky__tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 96px;
+  height: 22px;
+  background: url("/assets/tape-blue.webp") center / 100% 100% no-repeat;
+  opacity: .92;
+  transform: translateX(-50%) rotate(-5deg);
+}
+
+.sticky__title {
+  margin: 0 0 8px;
+  font: 700 24px/1.1 var(--hand);
+  white-space: nowrap;
+  text-decoration: underline wavy rgb(30 43 79 / .45);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 6px;
+}
+
+.sticky p { margin: 0; }
+
+.sticky b {
+  padding: 0 5px;
+  font: 700 17px/1 var(--typed);
+  background: rgb(255 255 255 / .5);
+  border-radius: 3px;
+}
+
+.sticky__fill { margin-top: 10px; margin-left: -3px; white-space: nowrap; }
+
+.noscript {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  margin: 0;
+  padding: 8px 16px;
+  font: 700 22px/1.2 var(--hand);
+  color: var(--red-pen);
+  background: var(--paper);
+  transform: translateX(-50%) rotate(-1deg);
+}
+
+/* ---------- Полёт комка ---------- */
+
+.flying-ball {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 15;
+  width: 100px;
+  height: 100px;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(4px 9px 6px rgb(var(--shadow) / .35));
+}
+
+/* ---------- «Вы вошли» ---------- */
+
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--crumple-screen) center / cover no-repeat, var(--paper);
+  background-blend-mode: multiply;
+  box-shadow: 0 30px 80px rgb(var(--shadow) / .4);
+}
+
+@media (orientation: portrait) {
+  .welcome { --crumple-screen: url("/assets/welcome-portrait.webp"); }
+}
+
+.welcome__svg {
+  display: block;
+  width: min(94vw, 1500px);
+  max-height: 82vh;
+  overflow: visible;
+}
+
+.welcome__word {
+  font-family: var(--hand);
+  font-size: 200px;
+  font-weight: 700;
+  white-space: pre;
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.welcome__word tspan {
+  fill-opacity: 0;
+  stroke-dasharray: 2000 4000;
+  stroke-dashoffset: 2000;
+}
+
+.welcome.is-writing .welcome__word tspan {
+  animation:
+    draw-letter 1s cubic-bezier(.45, 0, .3, 1) calc(var(--i) * 110ms) forwards,
+    fill-letter .45s ease calc(var(--i) * 110ms + .55s) forwards;
+}
+
+.welcome__underline {
+  fill: none;
+  stroke: var(--red-pen);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+}
+
+.welcome.is-writing .welcome__underline {
+  animation: draw .7s cubic-bezier(.6, 0, .3, 1) var(--underline-delay, 1.2s) forwards;
+}
+
+/* «Привет, anna» — мельче, после подчёркивания */
+.welcome__hello {
+  font-family: var(--hand);
+  font-weight: 700;
+  white-space: pre;
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.welcome__hello tspan {
+  fill-opacity: 0;
+  stroke-dasharray: 900 1800;
+  stroke-dashoffset: 900;
+}
+
+.welcome.is-writing .welcome__hello tspan {
+  animation:
+    draw-letter .8s cubic-bezier(.45, 0, .3, 1) calc(var(--hello-delay, 2s) + var(--i) * 80ms) forwards,
+    fill-letter .4s ease calc(var(--hello-delay, 2s) + var(--i) * 80ms + .45s) forwards;
+}
+
+.welcome.is-written .welcome__word tspan,
+.welcome.is-written .welcome__hello tspan { animation: none; fill-opacity: 1; stroke-dashoffset: 0; }
+.welcome.is-written .welcome__underline { animation: none; stroke-dashoffset: 0; }
+
+.welcome__logout {
+  position: absolute;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  font-size: 26px;
+  color: var(--pencil);
+}
+
+.welcome__logout:disabled { opacity: .45; cursor: default; }
+
+.welcome__error {
+  position: absolute;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: calc(max(20px, env(safe-area-inset-bottom)) + 40px);
+  margin: 0;
+  font: 700 22px/1.2 var(--hand);
+  color: var(--red-pen);
+}
+
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes draw-letter { to { stroke-dashoffset: 0; } }
+@keyframes fill-letter { to { fill-opacity: 1; } }
+
+/* Бумажные обрывки, которые сыплются при входе */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti__bit {
+  position: absolute;
+  top: -40px;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow) / .08);
+}
+
+.confetti__bit--ruled {
+  background-image: repeating-linear-gradient(transparent 0 5px, var(--rule) 5px 6px) !important;
+}
+
+/* ---------- Адаптивность ---------- */
+
+@media (max-width: 980px) {
+  .sticky {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 240px;
+    margin: 40px auto 0;
+    transform: rotate(-2deg);
+  }
+
+  .desk-note,
+  .desk-item,
+  .basket,
+  .basket-rim,
+  .tally { display: none; }
+
+  .ball--3 { right: 15vw; }
+}
+
+@media (max-width: 600px) {
+  :root { --margin-x: 44px; }
+
+  .scene { padding: 76px 14px 40px; }
+  .sheet { padding-right: 18px; }
+  .form__title { font-size: clamp(40px, 13.5vw, 54px); padding-top: 26px; }
+  .tabs { left: 58px; }
+  .tab { padding-inline: 14px; font-size: 22px; }
+  .tape { width: 98px; height: 22px; }
+  .tape--left { left: -26px; }
+  .tape--right { right: -26px; }
+  .field__error { font-size: 19px; }
+  .approved { width: 250px; font-size: 43px; }
+
+  .ball--1 { --size: 112px; left: -30px; bottom: 2vh; }
+  .ball--2 { --size: 80px; right: -18px; top: 3vh; }
+  .ball--3 { --size: 94px; right: 8vw; bottom: -36px; }
+  .ball--4 { --size: 76px; left: 40vw; top: -36px; }
+  .coffee { left: -50px; top: 4vh; width: 150px; height: 150px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: .01ms !important;
+  }
+}

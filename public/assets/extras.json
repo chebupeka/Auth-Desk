@@ -1,0 +1,9 @@
+{
+  "hand": true,
+  "cursor": true,
+  "imprint": true,
+  "decor": [
+    "stamp-on-desk.webp",
+    "ink-pad.webp"
+  ]
+}

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Черновик · вход</title>
+  <meta name="description" content="Вход и регистрация в бумажном стиле">
+  <meta name="theme-color" content="#d2bb9a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Черновик · вход">
+  <meta property="og:description" content="Вход и регистрация в бумажном стиле">
+  <meta property="og:image" content="/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/assets/icon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="/assets/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <!-- Все шрифты первого экрана: пока они грузятся, форма скрыта (app.js ждёт их), а без preload
+       PT Mono подсказки «впишите свои данные» мог на миг показаться Courier New -->
+  <link rel="preload" href="/fonts/caveat-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/caveat-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/pt-mono-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/pt-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/desk-kraft.webp" as="image" type="image/webp">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body class="is-booting">
+  <!-- Фильтры: искажение листа при сминании и неровный край кофейного пятна -->
+  <svg class="svg-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- scale анимируется из app.js -->
+      <filter id="fx-crumple" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.013" numOctaves="2" seed="4" result="warp"/>
+        <feDisplacementMap in="SourceGraphic" in2="warp" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+
+      <filter id="fx-rough" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="2"/>
+        <feDisplacementMap in="SourceGraphic" scale="10" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+
+      <!-- Неровная краска отпечатка пальца -->
+      <filter id="fx-print" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="9"/>
+        <feDisplacementMap in="SourceGraphic" scale="3.5" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Стол: лист мятой крафт-бумаги и всякое на нём -->
+  <div class="desk" aria-hidden="true">
+    <span class="coffee"></span>
+    <!-- Корзина: обод отдельной картинкой лежит поверх комков на дне. Рядом карандашом — счёт попаданий -->
+    <img class="basket" src="/assets/basket.svg" alt="" width="156" height="156" draggable="false">
+    <img class="basket-rim" src="/assets/basket-rim.svg" alt="" width="156" height="156" draggable="false">
+    <svg class="tally" viewBox="0 0 150 120"></svg>
+    <!-- data-desk: предмет можно перетаскивать (desk.js); сам по себе он не двигается -->
+    <img class="ball ball--1" src="/assets/ball-ruled.webp" alt="" width="140" height="140" draggable="false" data-desk="ball">
+    <img class="ball ball--2" src="/assets/ball-plain.webp" alt="" width="100" height="100" draggable="false" data-desk="ball">
+    <img class="ball ball--3" src="/assets/ball-kraft.webp" alt="" width="120" height="120" draggable="false" data-desk="ball">
+    <img class="ball ball--4" src="/assets/ball-sticky.webp" alt="" width="86" height="86" draggable="false" data-desk="ball">
+    <img class="desk-item desk-item--pad" src="/assets/ink-pad.webp" alt="" width="92" height="160" draggable="false" data-desk="note">
+    <img class="desk-item desk-item--stamp" id="deskStamp" src="/assets/stamp-on-desk.webp" alt="" width="128" height="127" draggable="false" data-desk="note">
+    <span class="desk-note desk-note--1" data-desk="note"><span class="desk-note__paper"><span>не забыть пароль!</span></span></span>
+    <span class="desk-note desk-note--2" id="weakNote" data-desk="note"><span class="desk-note__paper"><span><s>qwerty</s> <s>123456</s><br>придумать сложнее</span></span><span class="desk-note__remark">я же говорил!</span></span>
+  </div>
+
+  <main class="scene" id="scene">
+    <div class="notebook" id="notebook">
+      <div class="crumple" id="crumple">
+        <div class="stack" id="stack">
+          <div class="page page--back" aria-hidden="true"></div>
+          <div class="page page--middle" aria-hidden="true"></div>
+
+          <div class="tabs" role="tablist" aria-label="Вход или регистрация">
+            <button class="tab" type="button" role="tab" id="tab-login" data-mode="login"
+                    aria-selected="true" aria-controls="sheet">Вход</button>
+            <button class="tab" type="button" role="tab" id="tab-register" data-mode="register"
+                    aria-selected="false" aria-controls="sheet" tabindex="-1">Регистрация</button>
+          </div>
+
+          <section class="sheet" id="sheet" role="tabpanel" aria-labelledby="tab-login">
+            <span class="sheet__creases" id="creases" aria-hidden="true"></span>
+            <span class="holes" aria-hidden="true"></span>
+            <!-- Следы на листе: отпечатки пальцев и каракули. Уходят вместе с листом, новый лист чистый -->
+            <span class="marks" id="marks" aria-hidden="true"></span>
+            <!-- Пометки красной ручкой на полях: «неверно», «см. выше», обведённая «2» -->
+            <span class="margin-notes" id="marginNotes" aria-hidden="true"></span>
+
+            <form class="form" id="form" method="post" action="/api/login" novalidate>
+              <h1 class="form__title" id="title">Вход</h1>
+              <p class="form__hint" id="hint">впишите свои данные</p>
+
+              <div class="field" data-field="login">
+                <div class="field__head">
+                  <label class="field__label" for="login">Логин</label>
+                  <span class="field__error" id="login-error" aria-live="polite"></span>
+                </div>
+                <div class="field__control">
+                  <input class="field__input" id="login" name="login" type="text"
+                         autocomplete="username" autocapitalize="none" spellcheck="false"
+                         maxlength="32" aria-describedby="login-error" required>
+                </div>
+              </div>
+
+              <div class="field" data-field="password">
+                <div class="field__head">
+                  <label class="field__label" for="password">Пароль</label>
+                  <span class="field__error" id="password-error" aria-live="polite"></span>
+                </div>
+                <div class="field__control">
+                  <input class="field__input field__input--secret" id="password" name="password" type="password"
+                         autocomplete="current-password" maxlength="128" aria-describedby="password-error" required>
+                  <button class="peek" id="peek" type="button" aria-label="Показать пароль" aria-pressed="false" aria-controls="password">
+                    <svg viewBox="0 0 34 22" aria-hidden="true">
+                      <path class="peek__eye" d="M2.5 11.5C8 3.5 26 2.5 31.5 10.5C26 18.5 9 19.5 2.5 11.5Z"/>
+                      <circle class="peek__pupil" cx="17" cy="11" r="3.6"/>
+                      <path class="peek__slash" d="M5 19.5L29 2.5"/>
+                    </svg>
+                  </button>
+                  <svg class="strike" viewBox="0 0 300 36" preserveAspectRatio="none" aria-hidden="true">
+                    <path pathLength="1" d="M3 23C40 15 84 26 128 18S214 13 250 21S286 17 297 13"/>
+                    <path pathLength="1" d="M8 13C60 21 120 11 170 19S262 22 294 24"/>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="field" data-field="password2" id="repeatField" hidden>
+                <div class="field__head">
+                  <label class="field__label" for="password2">Пароль ещё раз</label>
+                  <span class="field__error" id="password2-error" aria-live="polite"></span>
+                </div>
+                <div class="field__control">
+                  <input class="field__input" id="password2" name="password2" type="password"
+                         autocomplete="new-password" maxlength="128" aria-describedby="password2-error">
+                </div>
+              </div>
+
+              <p class="form__error" id="formError" role="alert"></p>
+
+              <div class="form__actions">
+                <button class="stamp-btn" id="submit" type="submit">
+                  <span class="stamp-btn__ink" id="submitText">Войти</span>
+                </button>
+              </div>
+
+              <p class="form__switch">
+                <span id="question">Нет аккаунта?</span>
+                <button class="pencil-link" id="switchBtn" type="button">Зарегистрироваться</button>
+              </p>
+            </form>
+
+            <div class="approved" id="approved" aria-hidden="true"><span class="approved__ink" id="approvedInk">Принято</span></div>
+          </section>
+
+          <span class="tape tape--left" aria-hidden="true"></span>
+          <span class="tape tape--right" aria-hidden="true"></span>
+
+          <!-- Блокировка после 5 неверных паролей: лист заклеен крест-накрест, на скотче — обратный отсчёт -->
+          <div class="lockout" id="lockout" tabindex="-1" aria-label="Перерыв" hidden>
+            <span class="lockout__tape lockout__tape--a" aria-hidden="true">
+              <span class="lockout__strip"><span class="lockout__word">перерыв</span></span>
+            </span>
+            <span class="lockout__tape lockout__tape--b" aria-hidden="true">
+              <span class="lockout__strip"><span class="lockout__word" id="lockoutCount"></span></span>
+            </span>
+            <p class="visually-hidden" id="lockoutStatus" role="status"></p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sticky" id="sticky" aria-labelledby="sticky-title">
+        <span class="sticky__tape" aria-hidden="true"></span>
+        <h2 class="sticky__title" id="sticky-title">Тестовый доступ</h2>
+        <p>логин: <b>test</b></p>
+        <p>пароль: <b>test</b></p>
+        <button class="pencil-link sticky__fill" id="fillTest" type="button">подставить →</button>
+      </aside>
+    </div>
+
+    <noscript><p class="noscript">Для входа нужен включённый JavaScript.</p></noscript>
+  </main>
+
+  <img class="flying-ball" id="flyingBall" src="/assets/ball-ruled.webp" alt="" aria-hidden="true">
+
+  <!-- Рука со штампом: кадры из /assets/hand/hand.json вставляет app.js -->
+  <div class="hand" id="hand" aria-hidden="true" hidden></div>
+
+  <section class="welcome" id="welcome" aria-labelledby="welcomeTitle" hidden>
+    <h1 class="visually-hidden" id="welcomeTitle" tabindex="-1">Вы вошли</h1>
+    <svg class="welcome__svg" id="welcomeSvg" aria-hidden="true">
+      <text class="welcome__word" id="welcomeWord" text-anchor="middle"></text>
+      <path class="welcome__underline" id="welcomeUnderline" pathLength="1"/>
+      <text class="welcome__hello" id="welcomeHello" text-anchor="middle"></text>
+    </svg>
+    <p class="welcome__error" id="logoutError" role="alert"></p>
+    <button class="pencil-link welcome__logout" id="logout" type="button">выйти</button>
+  </section>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+  <!-- Курсор-рука: позы из /assets/cursor/cursor.json вставляет cursor.js. Стоит после .hand:
+       пока та на экране, курсор прячется (style.css) -->
+  <div class="cursor" id="cursor" aria-hidden="true" hidden></div>
+</body>
+</html>

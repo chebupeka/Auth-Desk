@@ -1,0 +1,16 @@
+{
+  "name": "paper-auth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Вход и регистрация в бумажном стиле на локальной SQLite",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --watch --disable-warning=ExperimentalWarning server.js",
+    "db:reset": "node --disable-warning=ExperimentalWarning scripts/reset-db.js",
+    "test": "node --disable-warning=ExperimentalWarning --test"
+  }
+}
